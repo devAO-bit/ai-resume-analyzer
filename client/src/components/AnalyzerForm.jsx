@@ -1,12 +1,30 @@
 import { useState } from "react";
+import axios from "axios";
 
 function AnalyzerForm() {
   const [resume, setResume] = useState("");
   const [jobDesc, setJobDesc] = useState("");
   const [model, setModel] = useState("mistral");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState("");
 
-  const handleSubmit = () => {
-    console.log({ resume, jobDesc, model });
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+
+      const res = await axios.post(
+        "http://localhost:3000/api/ai/analyze",
+        { resume, jobDesc, model }
+      );
+
+      setResult(res.data.result);
+
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      alert("Error analyzing resume");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,12 +42,20 @@ function AnalyzerForm() {
       />
 
       <select value={model} onChange={(e) => setModel(e.target.value)}>
-        <option value="mistral">Mistral</option>
-        <option value="llama3">Llama3</option>
-        <option value="gemma3:270m">gemma3:270m</option>
+        <option value="mistral:latest">Mistral</option>
+        <option value="gemma:2b">Gemma2</option>
+        <option value="gemma3:270m">Gemma3</option>
       </select>
 
-      <button onClick={handleSubmit}>Analyze Resume</button>
+      <button onClick={handleSubmit}>
+        {loading ? "Analyzing..." : "Analyze Resume"}
+      </button>
+
+      {result && (
+        <div className="result-box">
+          <pre>{result}</pre>
+        </div>
+      )}
     </div>
   );
 }
